@@ -158,7 +158,7 @@ class LNCrawlerPlugin implements Plugin.PluginBase {
   name = 'LNCrawler';
   icon = 'src/en/lncrawler/icon.png';
   site = 'https://lncrawler.monster';
-  version = '1.0.0';
+  version = '1.0.1';
 
   async popularNovels(
     pageNo: number,

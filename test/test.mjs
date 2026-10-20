@@ -8,6 +8,7 @@ import {
   parseNovelListPage,
   parseNovelSources,
   parseSourceDetails,
+  sanitizeChapterHtml,
 } from './parsers.bundle.mjs';
 
 const API = 'https://api.lncrawler.monster';
@@ -128,6 +129,24 @@ console.log('chapter body (chapter 1):');
   check('body long', body.length > 5000, body.length);
   check('has story text', /frail-looking young man/.test(body));
   check('leading <h1> stripped', !/^\s*<h1/.test(body));
+}
+
+console.log('sanitizer:');
+{
+  const dirty =
+    '<p onclick="evil()">text</p><script>alert(1)</script>' +
+    '<iframe src="https://x"></iframe><form><input></form>' +
+    '<a href="javascript:evil()">link</a>' +
+    '<img src="https://img/x.jpg" onerror="evil()">' +
+    '<p>clean</p>';
+  const clean = sanitizeChapterHtml(dirty);
+  check('story text kept', /text/.test(clean) && /clean/.test(clean));
+  check('script removed', !/<script/.test(clean));
+  check('iframe removed', !/<iframe/.test(clean));
+  check('form removed', !/<form/.test(clean));
+  check('event handlers removed', !/onclick|onerror/.test(clean));
+  check('javascript: URL removed', !/javascript:/.test(clean));
+  check('safe img kept', /<img src="https:\/\/img\/x.jpg">/.test(clean));
 }
 
 console.log('shape validation:');

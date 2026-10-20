@@ -55,6 +55,39 @@ export function stripHtml(html: string): string {
     .trim();
 }
 
+
+/**
+ * Strip executable content from chapter HTML. The chapter body is
+ * HTML the API assembled from upstream source sites, i.e. untrusted
+ * markup: scripts, frames, form elements, inline event handlers and
+ * javascript:/vbscript: URLs must not reach the reader. Everything
+ * else (paragraphs, images, links, tables) is kept as-is.
+ */
+export function sanitizeChapterHtml(html: string): string {
+  return html
+    .replace(
+      /<(script|style|iframe|object|embed|form)\b[\s\S]*?<\/\1\s*>/gi,
+      '',
+    )
+    .replace(
+      /<(script|style|iframe|object|embed|form|link|meta|base)\b[^>]*>/gi,
+      '',
+    )
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
+    .replace(/\son\w+\s*=\s*[^\s>]+/gi, '')
+    .replace(
+      /\s(?:href|src)\s*=\s*"\s*(?:javascript|vbscript)\s*:[^"]*"/gi,
+      '',
+    )
+    .replace(
+      /\s(?:href|src)\s*=\s*'\s*(?:javascript|vbscript)\s*:[^']*'/gi,
+      '',
+    )
+    .replace(/\s(?:href|src)\s*=\s*"\s*data\s*:\s*text\/html[^"]*"/gi, '')
+    .replace(/\s(?:href|src)\s*=\s*'\s*data\s*:\s*text\/html[^']*'/gi, '');
+}
+
 export interface NovelCard {
   name: string;
   /** The novel slug — parseNovel resolves the best English source. */
@@ -255,5 +288,8 @@ export function parseChapterBody(text: string): string {
   if (typeof data.body !== 'string') {
     throw new Error('Chapter response had an unexpected shape');
   }
-  return data.body.replace(/^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*/i, '').trim();
+  const withoutTitle = data.body
+    .replace(/^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*/i, '')
+    .trim();
+  return sanitizeChapterHtml(withoutTitle);
 }
