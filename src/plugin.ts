@@ -158,7 +158,7 @@ class LNCrawlerPlugin implements Plugin.PluginBase {
   name = 'LNCrawler';
   icon = 'src/en/lncrawler/icon.png';
   site = 'https://lncrawler.monster';
-  version = '1.0.1';
+  version = '1.0.2';
 
   async popularNovels(
     pageNo: number,
@@ -252,7 +252,7 @@ class LNCrawlerPlugin implements Plugin.PluginBase {
   }
 
   resolveUrl = (path: string, _isNovel?: boolean) =>
-    `${this.site}/novels/${path}`;
+    /^https?:\/\//i.test(path) ? path : `${this.site}/novels/${path}`;
 }
 
 export default new LNCrawlerPlugin();
